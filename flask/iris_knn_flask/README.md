@@ -7,6 +7,7 @@
 - Flask 웹 화면에서 측정값 입력 후 품종 예측
 - 예측 품종 이름과 품종 사진 출력
 - POST-Redirect-GET 패턴 적용, 새로고침 시 같은 입력 재전송 방지
+- 입력 카드와 결과 카드 2단 화면, 모바일 폭에서 1단 배치
 - Docker 컨테이너 실행 환경
 
 ## 사용 기술
@@ -37,17 +38,20 @@
 
 ### 입력 화면
 
-- 측정값 4개 입력
-- 예측 버튼 실행
+- 항목별 한글·영문 이름과 cm 단위 표시
+- 측정값 4개 입력 후 예측 버튼 실행
 
 ![입력 화면](./static/images/input_screen.png)
 
 ### 예측 결과
 
+- 예측 품종 이름, 학명, 품종 사진 출력
+
+![versicolor 예측 결과](./static/images/result_versicolor.png)
+
 <div align="center">
-  <img src="./static/images/result_setosa.png" alt="setosa 예측 결과" width="30%" />
-  <img src="./static/images/result_versicolor.png" alt="versicolor 예측 결과" width="30%" />
-  <img src="./static/images/result_virginica.png" alt="virginica 예측 결과" width="30%" />
+  <img src="./static/images/result_setosa.png" alt="setosa 예측 결과" width="49%" />
+  <img src="./static/images/result_virginica.png" alt="virginica 예측 결과" width="49%" />
 </div>
 
 | 예측 결과 | Sepal Length | Sepal Width | Petal Length | Petal Width |
@@ -70,7 +74,8 @@
 
 - `app.py`: 모델 불러오기, 품종 예측, 결과를 session에 담아 redirect 후 출력
 - `train_model.py`: 데이터 7:2:1 분할, KNN 학습, 모델 저장
-- `templates/index.html`: 입력 폼과 결과 화면
+- `templates/index.html`: 입력 카드와 결과 카드 화면, 입력 오류 표시
+- `static/style.css`: 화면 스타일, 모바일 폭 1단 배치
 - `static/`: 품종별 사진
 - `static/images/`: 실행 화면 캡처
 - `requirements.txt`: 실행 패키지 목록
@@ -88,6 +93,7 @@ iris_knn_flask/
 ├─ templates/
 │  └─ index.html
 └─ static/
+   ├─ style.css
    ├─ setosa.jpg
    ├─ versicolor.jpg
    ├─ Iris_virginica_2.jpg

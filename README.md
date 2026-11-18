@@ -30,7 +30,7 @@ Flask 웹 화면과 Docker 실행 환경으로 서비스하는 학습 프로젝�
 
 - 붓꽃 측정값 4개로 품종 3종 분류, KNN
 - 학습 · 검증 · 테스트 7:2:1 분할, 테스트 정확도 100%
-- POST-Redirect-GET 패턴, Docker 컨테이너 실행
+- 입력·결과 카드 2단 화면, POST-Redirect-GET 패턴, Docker 실행
 
 </td>
 <td width="50%" valign="top">
