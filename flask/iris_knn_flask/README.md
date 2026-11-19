@@ -79,6 +79,7 @@
 - `static/`: 품종별 사진
 - `static/images/`: 실행 화면 캡처
 - `requirements.txt`: 실행 패키지 목록
+- `Dockerfile`: Python 3.12 환경, 패키지 설치, 소스코드·모델 복사, 5000 포트 실행
 
 ## 프로젝트 구조
 
@@ -87,6 +88,7 @@ iris_knn_flask/
 ├─ app.py
 ├─ train_model.py
 ├─ requirements.txt
+├─ Dockerfile
 ├─ README.md
 ├─ model/
 │  └─ iris_model.pkl
@@ -119,18 +121,13 @@ iris_knn_flask/
 
 ### Docker 실행
 
-`flask` 폴더에서 실행
-
-```powershell
-docker run -it --rm -p 5000:5000 -v "${PWD}:/workspace" python:3.12-slim bash
-```
-
-컨테이너 안에서 실행
+Docker만 설치된 환경에서 Python·패키지 설치 없이 실행
 
 ```bash
-cd /workspace/iris_knn_flask
-pip install -r requirements.txt
-python3 app.py
+git clone https://github.com/seo941024/DL_project.git
+cd DL_project/flask/iris_knn_flask
+docker build -t iris-knn-flask .
+docker run -d --name iris-knn-flask -p 5000:5000 iris-knn-flask
 ```
 
 브라우저 접속:
