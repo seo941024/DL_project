@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat Studio</title>
+<style>
+  :root {
+    --bg: #0a0b10;
+    --card: rgba(255, 255, 255, .04);
+    --card-line: rgba(255, 255, 255, .09);
+    --text: #e8e9f0;
+    --muted: #9095a8;
+    --faint: #5c6175;
+    --violet: #8b5cf6;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --ok: #34d399;
+    --sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --mono: "JetBrains Mono", "D2Coding", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(139, 92, 246, .22), transparent 60%),
+      radial-gradient(800px 500px at 110% 10%, rgba(34, 211, 238, .14), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font: 15px/1.6 var(--sans);
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 32px 16px 48px; }
+
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+  .logo { width: 40px; height: 40px; border-radius: 12px; background: conic-gradient(from 210deg, var(--violet), var(--cyan), var(--pink), var(--violet)); box-shadow: 0 0 24px rgba(139, 92, 246, .45); }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  .pill { margin-left: auto; padding: 6px 12px; border: 1px solid var(--card-line); border-radius: 999px; color: var(--muted); font: 12px var(--mono); white-space: nowrap; }
+  .pill b { color: var(--ok); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+  .card { border: 1px solid var(--card-line); border-radius: 18px; background: var(--card); backdrop-filter: blur(12px); padding: 22px; }
+  #send-form { position: sticky; top: 24px; }
+
+  .label-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .label { font-weight: 600; font-size: 14px; }
+  .count { color: var(--faint); font: 12px var(--mono); }
+  textarea {
+    width: 100%; resize: vertical; padding: 14px 16px; border: 1px solid var(--card-line); border-radius: 12px;
+    background: rgba(0, 0, 0, .35); color: var(--text); font: 15px/1.6 var(--sans); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea:focus { border-color: var(--violet); box-shadow: 0 0 0 4px rgba(139, 92, 246, .18); }
+  #message { min-height: 140px; margin-bottom: 18px; }
+  #persona { min-height: 96px; font-size: 14px; color: #c4b5fd; }
+
+  details { margin-bottom: 22px; }
+  summary { display: flex; justify-content: space-between; cursor: pointer; color: var(--muted); font-size: 14px; margin-bottom: 10px; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary span::before { content: "▸ "; }
+  details[open] summary span::before { content: "▾ "; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip {
+    padding: 6px 12px; border: 1px solid var(--card-line); border-radius: 999px; background: rgba(255, 255, 255, .03);
+    color: var(--muted); font: 13px var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .chip:hover { color: var(--text); border-color: rgba(139, 92, 246, .6); background: rgba(139, 92, 246, .12); }
+  .chip.on { color: var(--text); border-color: var(--violet); background: rgba(139, 92, 246, .24); }
+
+  .generate {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 15px 18px;
+    border: 0; border-radius: 14px; cursor: pointer; color: #fff; font: 700 16px var(--sans); letter-spacing: -.01em;
+    background: linear-gradient(110deg, var(--violet), #6366f1 45%, var(--cyan));
+    box-shadow: 0 10px 30px rgba(99, 102, 241, .35); transition: transform .12s, filter .12s;
+  }
+  .generate:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .generate:disabled { cursor: progress; filter: grayscale(.4) brightness(.85); transform: none; }
+  .hint { margin-top: 10px; text-align: center; color: var(--faint); font-size: 12px; }
+  kbd { padding: 1px 6px; border: 1px solid var(--card-line); border-bottom-width: 2px; border-radius: 5px; font: 11px var(--mono); color: var(--muted); }
+
+  .meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+  .meta div { padding: 10px 12px; border: 1px solid var(--card-line); border-radius: 12px; background: rgba(0, 0, 0, .25); min-width: 0; }
+  .meta small { display: block; color: var(--faint); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .meta span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 13px var(--mono); }
+
+  .chat { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .empty { padding: 56px 0; text-align: center; color: var(--faint); }
+  .empty .orb { width: 88px; height: 88px; margin: 0 auto 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(34, 211, 238, .5), rgba(139, 92, 246, .25) 55%, transparent 70%); filter: blur(1px); animation: float 4s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-8px) scale(1.04); } }
+
+  .msg { padding: 12px 14px; border: 1px solid var(--card-line); border-radius: 14px; background: rgba(0, 0, 0, .25); }
+  .msg small { display: block; margin-bottom: 4px; color: var(--faint); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .msg p { margin: 0; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
+  .msg.user { justify-self: end; max-width: 85%; border-color: rgba(139, 92, 246, .45); background: rgba(139, 92, 246, .14); }
+  .msg.bot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .bot-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .bot-head .tag { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c4b5fd; font-size: 11px; }
+  .msg.bot .en { font: 13px/1.7 var(--mono); color: var(--cyan); }
+  .msg.bot .ko-block { padding-top: 12px; border-top: 1px solid var(--card-line); }
+  .error { padding: 12px 14px; border: 1px solid rgba(244, 114, 182, .4); border-radius: 12px; color: var(--pink); font-size: 14px; word-break: break-word; }
+
+  .loading { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px dashed var(--card-line); border-radius: 14px; color: var(--muted); font-size: 14px; }
+  .spinner { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .12); border-top-color: var(--cyan); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .timer { margin-left: auto; color: var(--text); font: 600 15px var(--mono); }
+
+  .actions { display: flex; gap: 10px; margin-top: 18px; }
+  .actions form { flex: 1; display: flex; }
+  .ghost {
+    flex: 1; padding: 11px 14px; border: 1px solid var(--card-line); border-radius: 12px; background: transparent;
+    color: var(--text); font: 600 14px var(--sans); text-align: center; text-decoration: none; cursor: pointer; transition: background .15s;
+  }
+  .ghost:hover { background: rgba(255, 255, 255, .06); }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    #send-form { position: static; order: 2; }
+    .pill { display: none; }
+    .meta { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"></div>
+    <div>
+      <h1>Chat Studio</h1>
+      <p>메시지를 보내면 LLM이 영어로 답하고 한글 해석을 함께 표시합니다</p>
+    </div>
+    <div class="pill"><b>●</b> <span id="server"></span></div>
+  </header>
+
+  <div class="grid">
+    <form class="card" method="post" action="{{ url_for('index') }}" id="send-form">
+      <div class="label-row">
+        <span class="label">메시지</span>
+        <span class="count" id="msg-count"></span>
+      </div>
+      <textarea id="message" name="message" spellcheck="false" placeholder="Docker 컨테이너와 가상 머신의 차이"></textarea>
+
+      <details open>
+        <summary><span>성격·답변 규칙</span><span class="count" id="persona-count"></span></summary>
+        <textarea id="persona" name="persona" spellcheck="false" maxlength="{{ max_persona }}"
+                  placeholder="차갑고 무뚝뚝한 말투, 공감·인사·격려 없이 핵심만 답변">{{ persona }}</textarea>
+        <div class="chips">
+          <button type="button" class="chip" data-line="차갑고 무뚝뚝한 말투, 공감·인사·격려 없이 핵심만 답변">차가움</button>
+          <button type="button" class="chip" data-line="따뜻하고 친절한 말투로 답변">따뜻함</button>
+          <button type="button" class="chip" data-line="긍정적이고 밝은 태도로 답변">긍정적</button>
+          <button type="button" class="chip" data-line="확인된 사실에 근거해 답변하고, 확실하지 않은 내용은 모른다고 답변">사실 기반</button>
+          <button type="button" class="chip" data-line="세 문장 이내로 짧게 답변">짧게</button>
+          <button type="button" class="chip" data-line="해당 분야 전문가처럼 전문 용어를 사용해 답변">전문가</button>
+        </div>
+      </details>
+
+      <button type="submit" class="generate" id="run">✦ 보내기</button>
+      <div class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 로도 보낼 수 있습니다</div>
+
+      <div class="meta">
+        <div><small>LLM</small><span>{{ llm_model }}</span></div>
+        <div><small>Server</small><span>{{ llm_host }}</span></div>
+        <div><small>Turns</small><span>{{ turns|length }}</span></div>
+      </div>
+    </form>
+
+    <section class="card">
+      <div class="chat" id="chat">
+        {% for turn in turns %}
+          <div class="msg user"><small>나</small><p>{{ turn.user }}</p></div>
+          {% if turn.error %}
+            <div class="error">{{ turn.error }}</div>
+          {% else %}
+            <div class="msg bot">
+              <div>
+                <div class="bot-head">
+                  <small>LLM 답변 · English</small>
+                  {% if turn.persona %}<span class="tag" title="{{ turn.persona }}">{{ turn.persona|replace('\n', ' · ') }}</span>{% endif %}
+                </div>
+                <p class="en">{{ turn.en|md }}</p>
+              </div>
+              <div class="ko-block"><small>한글 해석</small><p>{{ turn.ko|md }}</p></div>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="empty" id="empty">
+            <div class="orb"></div>
+            <div>아직 대화가 없습니다</div>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if turns %}
+      <div class="actions">
+        <button type="button" class="ghost" id="copy">마지막 답변 복사</button>
+        <form method="post" action="{{ url_for('reset') }}"><button type="submit" class="ghost">새 대화</button></form>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById("send-form");
+  const message = document.getElementById("message");
+  const run = document.getElementById("run");
+  const chat = document.getElementById("chat");
+
+  document.getElementById("server").textContent = location.host;
+
+  const persona = document.getElementById("persona");
+  const chips = document.querySelectorAll(".chip");
+
+  // 메시지가 비어 있으면 버튼이 성격·답변 규칙 저장으로 바뀜
+  const countMsg = () => {
+    document.getElementById("msg-count").textContent = message.value.length + "자";
+    run.textContent = message.value.trim() ? "✦ 보내기" : "✦ 규칙 저장";
+  };
+  message.addEventListener("input", countMsg);
+  countMsg();
+
+  // 성격·답변 규칙 글자 수와 버튼 켜짐 표시
+  const lines = () => persona.value.split("\n").map((l) => l.trim()).filter(Boolean);
+  const syncPersona = () => {
+    document.getElementById("persona-count").textContent = persona.value.length + "/" + persona.maxLength + "자";
+    const cur = lines();
+    chips.forEach((chip) => chip.classList.toggle("on", cur.includes(chip.dataset.line)));
+  };
+  persona.addEventListener("input", syncPersona);
+  syncPersona();
+
+  // 버튼을 누르면 해당 규칙 줄을 넣거나 빼기
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const cur = lines();
+      const line = chip.dataset.line;
+      persona.value = (cur.includes(line) ? cur.filter((l) => l !== line) : [...cur, line]).join("\n");
+      syncPersona();
+      persona.focus();
+    });
+  });
+
+  // 마지막 대화가 보이도록 이동
+  if (chat.lastElementChild) chat.lastElementChild.scrollIntoView({ block: "end" });
+
+  form.addEventListener("submit", () => {
+    if (!message.value.trim()) { run.disabled = true; run.textContent = "저장 중..."; return; }
+    run.disabled = true;
+    run.textContent = "응답 생성 중...";
+    const empty = document.getElementById("empty");
+    if (empty) empty.remove();
+
+    // 보낸 메시지와 응답 대기 표시를 대화 끝에 추가
+    const user = document.createElement("div");
+    user.className = "msg user";
+    user.innerHTML = "<small>나</small><p></p>";
+    user.querySelector("p").textContent = message.value.trim();
+    const wait = document.createElement("div");
+    wait.className = "loading";
+    wait.innerHTML = '<div class="spinner"></div><span>LLM 답변과 한글 해석 생성 중</span><span class="timer">0.0s</span>';
+    chat.append(user, wait);
+    wait.scrollIntoView({ block: "end" });
+
+    const t0 = performance.now();
+    setInterval(() => {
+      wait.querySelector(".timer").textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s";
+    }, 100);
+  });
+
+  form.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  const copy = document.getElementById("copy");
+  if (copy) {
+    copy.addEventListener("click", () => {
+      const answers = document.querySelectorAll(".msg.bot .en");
+      if (!answers.length) return;
+      navigator.clipboard.writeText(answers[answers.length - 1].textContent);
+      copy.textContent = "복사됨";
+      setTimeout(() => { copy.textContent = "마지막 답변 복사"; }, 1200);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+flask>=3.0.0
+requests
+langchain==0.3.17
+langchain-ollama
+pydantic>=2

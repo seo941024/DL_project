@@ -1,0 +1,51 @@
+# LLM 채팅 서비스: 영어 답변과 한글 해석
+# 실행: 이 폴더에서 docker compose up -d --build, 접속 http://localhost:5100
+name: llm-chat
+
+services:
+  web:
+    build: ./web
+    container_name: llm-chat-web
+    ports:
+      - "5100:5000"
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      LLM_MODEL: ${LLM_MODEL:-exaone3.5:2.4b}
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  # 다른 PC의 웹 서버도 11434 포트로 이 LLM 서버를 호출
+  ollama:
+    image: ollama/ollama:latest
+    container_name: llm-chat-ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    gpus: all
+    # Ollama 서버 응답 확인, 시작 직후 2초 간격, 이후 30초 간격
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+      start_interval: 2s
+
+  # Ollama 서버가 응답한 뒤 LLM 모델 내려받기와 예열 생성, 끝나면 종료
+  # 컨테이너 생성 후 첫 생성은 GPU 연산 준비로 1~2분 걸려 사용자 첫 메시지 전에 미리 실행
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: llm-chat-ollama-init
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c", "ollama pull ${LLM_MODEL:-exaone3.5:2.4b} && ollama run ${LLM_MODEL:-exaone3.5:2.4b} hello > /dev/null && echo warmup done"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  ollama:
