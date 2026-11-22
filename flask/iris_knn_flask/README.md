@@ -73,7 +73,7 @@
 ## 파일별 기능
 
 - `app.py`: 모델 불러오기, 품종 예측, 결과를 session에 담아 redirect 후 출력
-- `train_model.py`: 데이터 7:2:1 분할, KNN 학습, 모델 저장
+- `train_model.py`: 데이터 7:2:1 분할, KNN 학습, 검증·테스트 정확도 출력, 모델 저장
 - `templates/index.html`: 입력 카드와 결과 카드 화면, 입력 오류 표시
 - `static/style.css`: 화면 스타일, 모바일 폭 1단 배치
 - `static/`: 품종별 사진
