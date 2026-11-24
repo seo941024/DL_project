@@ -65,6 +65,7 @@
 - `templates/index.html`: 코드 편집기 형태 입력 화면, JSON 결과, 원문 · 번역문, 생성 이미지
 - `static/workflow.json`: ComfyUI SDXL Turbo 워크플로, 6번 positive · 7번 negative · 13번 seed 노드
 - `requirements.txt`: 실행 패키지 목록
+- `Dockerfile`: 화면 서버 이미지, 모델 계산 없이 Ollama·ComfyUI 호출만 포함
 
 ## 실행 방법
 
@@ -86,3 +87,18 @@ python app.py
 ```bash
 COMFY_URL=http://<ComfyUI 서버 IP>:8188 python app.py
 ```
+
+### 화면 서버와 계산 서버 분리 실행
+
+- GPU PC: Ollama 11434 포트, ComfyUI 8188 포트 실행, 이미지 생성과 LLM 계산
+- 화면 서버 PC: 이 폴더만 복사 후 Docker로 실행, 브라우저 요청 수신과 LangChain 체인 실행
+
+```bash
+docker build -t langchain-comfy .
+docker run -d --name langchain-comfy -p 5200:5000 \
+  -e OLLAMA_URL=http://<GPU PC IP>:11434 \
+  -e COMFY_URL=http://<GPU PC IP>:8188 \
+  --restart unless-stopped langchain-comfy
+```
+
+브라우저 접속: `http://<화면 서버 PC IP>:5200/`

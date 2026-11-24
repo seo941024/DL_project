@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ComfyUI Minimal (Functions)</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-deep: #0b0f14;
+    --line: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --dim: #484f58;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --purple: #d2a8ff;
+    --red: #ff7b72;
+    --string: #a5d6ff;
+    --mono: "JetBrains Mono", "D2Coding", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.6 var(--mono); }
+  .wrap { max-width: 1180px; margin: 32px auto; padding: 0 16px; }
+
+  .window { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--panel); box-shadow: 0 20px 60px rgba(0, 0, 0, .45); }
+  .titlebar { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; background: #010409; border-bottom: 1px solid var(--line); }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+  .tabs { display: flex; height: 100%; margin-left: 16px; }
+  .tab { display: flex; align-items: center; padding: 0 14px; border-right: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  .tab.active { color: var(--text); background: var(--panel); box-shadow: inset 0 2px 0 #f78166; }
+  .title { margin-left: auto; color: var(--muted); font-size: 12px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .pane { padding: 20px 22px; }
+  .pane + .pane { border-left: 1px solid var(--line); background: var(--panel-deep); }
+
+  .comment { color: var(--muted); }
+  .var { color: var(--blue); } .kw { color: var(--red); } .fn { color: var(--purple); } .str { color: var(--string); }
+
+  .field { margin: 16px 0 20px; }
+  .code-label { display: block; margin-bottom: 6px; }
+  .editor { display: flex; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-deep); overflow: hidden; transition: border-color .15s, box-shadow .15s; }
+  .editor:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(88, 166, 255, .15); }
+  .gutter { width: 34px; padding: 10px 0; text-align: center; color: var(--dim); background: var(--bg); border-right: 1px solid var(--line); user-select: none; }
+  textarea { flex: 1; min-height: 64px; padding: 10px 12px; border: 0; outline: 0; resize: vertical; background: transparent; color: var(--string); font: 14px/1.6 var(--mono); caret-color: var(--green); }
+  .neg textarea { color: #ffa198; }
+
+  .call { margin: 4px 0 14px; }
+  .actions { display: flex; align-items: center; gap: 14px; }
+  button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border: 1px solid rgba(240, 246, 252, .1); border-radius: 6px; background: #238636; color: #fff; font: 600 14px var(--mono); cursor: pointer; }
+  button:hover { background: #2ea043; }
+  button:disabled { background: #21262d; color: var(--muted); cursor: progress; }
+  .hint { color: var(--muted); font-size: 12px; }
+  kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: #21262d; font: 11px var(--mono); }
+
+  .out-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .badge { padding: 2px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12px; }
+  .badge.ok { color: var(--green); border-color: rgba(63, 185, 80, .4); }
+  .badge.run { color: #e3b341; border-color: rgba(227, 179, 65, .4); }
+  .canvas { display: grid; place-items: center; aspect-ratio: 1 / 1; border: 1px dashed var(--line); border-radius: 8px; overflow: hidden;
+            background: repeating-conic-gradient(#11161d 0% 25%, #0d1117 0% 50%) 50% / 20px 20px; }
+  .canvas a, .canvas img { display: block; width: 100%; height: 100%; }
+  .canvas img { object-fit: contain; }
+
+  .term { padding: 12px 18px; border-top: 1px solid var(--line); background: #010409; font-size: 13px; }
+  .term .line { white-space: pre-wrap; word-break: break-all; }
+  .prompt { color: var(--green); }
+  .key { display: inline-block; width: 11ch; color: var(--muted); }
+  .cursor { display: inline-block; width: 8px; height: 15px; background: var(--text); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .statusbar { display: flex; gap: 20px; padding: 4px 14px; background: #1f6feb; color: #fff; font-size: 12px; }
+  .statusbar .right { margin-left: auto; }
+
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+    .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="window">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <div class="tabs">
+        <div class="tab active">prompt.py</div>
+        <div class="tab">output.png</div>
+      </div>
+      <div class="title">ComfyUI Client</div>
+    </div>
+
+    <div class="grid">
+      <form class="pane" method="post" id="gen">
+        <div class="comment"># ComfyUI 프롬프트 → 이미지</div>
+        <div class="comment"># Ctrl+Enter 로 바로 실행</div>
+
+        <div class="field">
+          <label class="code-label" for="pos"><span class="var">positive_prompt</span> <span class="kw">=</span></label>
+          <div class="editor">
+            <div class="gutter">›</div>
+            <textarea id="pos" name="pos" rows="4" spellcheck="false">{{ pos }}</textarea>
+          </div>
+        </div>
+
+        <div class="field neg">
+          <label class="code-label" for="neg"><span class="var">negative_prompt</span> <span class="kw">=</span></label>
+          <div class="editor">
+            <div class="gutter">›</div>
+            <textarea id="neg" name="neg" rows="2" spellcheck="false">{{ neg }}</textarea>
+          </div>
+        </div>
+
+        <div class="call"><span class="fn">generate</span>(<span class="var">positive_prompt</span>, <span class="var">negative_prompt</span>)</div>
+        <div class="actions">
+          <button type="submit" id="run">▶ Run</button>
+          <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
+        </div>
+      </form>
+
+      <section class="pane">
+        <div class="out-head">
+          <span class="comment"># Result</span>
+          {% if img_url %}
+            <span class="badge ok" id="state">● done</span>
+          {% else %}
+            <span class="badge" id="state">idle</span>
+          {% endif %}
+        </div>
+        <div class="canvas">
+          {% if img_url %}
+            <a href="{{ img_url }}" target="_blank" rel="noopener"><img src="{{ img_url }}" alt="generated image"></a>
+          {% else %}
+            <span class="comment">// 아직 생성된 이미지가 없습니다</span>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <div class="term" id="term" data-img-url="{{ img_url }}">
+      <div class="line"><span class="prompt">$</span> <span class="key">server</span><span id="srv"></span></div>
+      {% if img_url %}
+      <div class="line"><span class="prompt">$</span> <span class="key">inference</span><span id="inf"></span></div>
+      <div class="line"><span class="prompt">$</span> <span class="key">output</span><span class="str">{{ img_url }}</span></div>
+      {% endif %}
+      <div class="line" id="tail"><span class="prompt">$</span> <span class="cursor"></span></div>
+    </div>
+
+    <div class="statusbar">
+      <span>● Flask</span>
+      <span id="sb-srv"></span>
+      <span class="right">POST /</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById("gen");
+  const runBtn = document.getElementById("run");
+  const state = document.getElementById("state");
+  const imgUrl = document.getElementById("term").dataset.imgUrl;
+
+  document.getElementById("srv").textContent = location.host;
+  document.getElementById("sb-srv").textContent = "server " + location.host;
+  if (imgUrl) {
+    try { document.getElementById("inf").textContent = new URL(imgUrl).host; } catch (e) {}
+  }
+
+  form.addEventListener("submit", () => {
+    runBtn.disabled = true;
+    runBtn.textContent = "● Running...";
+    state.className = "badge run";
+    state.textContent = "running";
+    document.getElementById("tail").innerHTML = '<span class="prompt">$</span> generating... <span class="cursor"></span>';
+  });
+
+  form.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+</script>
+</body>
+</html>

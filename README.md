@@ -58,6 +58,42 @@ Flask 웹 서비스와 Docker 실행 환경으로 구현한 학습 프로젝트 
 <tr>
 <td width="50%" valign="top">
 
+<a href="./flask/comfyui_studio/"><img src="images/card_comfyui_studio.png" height="240" alt="ComfyUI Prompt Studio · 프롬프트 입력과 생성 이미지"></a>
+
+<img src="https://img.shields.io/badge/Generative_AI-5b3f8c?style=flat" alt="Generative AI" align="middle"> &nbsp;<sub>2026.11</sub>
+
+### ComfyUI Prompt Studio <a href="./flask/comfyui_studio/">상세보기 →</a>
+
+`ComfyUI` `SDXL Turbo` `Flask` `Docker`
+
+**ComfyUI API 연동 · 이미지 생성 웹 화면**
+
+- 프롬프트·제외할 요소 입력, 스타일 키워드 버튼
+- 워크플로 JSON의 텍스트·seed 노드를 바꿔 ComfyUI에 제출
+- 화면 서버와 GPU 서버 분리, 주소는 환경 변수로 지정
+
+</td>
+<td width="50%" valign="top">
+
+<a href="./flask/comfyui/"><img src="images/card_comfyui_client.png" height="240" alt="ComfyUI Client · 코드 편집기 형태 입력 화면"></a>
+
+<img src="https://img.shields.io/badge/Generative_AI-5b3f8c?style=flat" alt="Generative AI" align="middle"> &nbsp;<sub>2026.11</sub>
+
+### ComfyUI Client · FLUX.2 <a href="./flask/comfyui/">상세보기 →</a>
+
+`ComfyUI` `FLUX.2 Klein` `Flask`
+
+**워크플로 교체 · 코드 편집기 형태 화면**
+
+- FLUX.2 Klein 워크플로의 프롬프트·seed 노드 연결
+- 같은 Flask 구조에서 워크플로 JSON과 노드 번호만 교체
+- 코드 편집기 형태 입력·결과 화면, 실행 상태 표시
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
 <a href="./llm_chat/"><img src="images/card_llm_chat.png" height="240" alt="LLM Chat Studio · 성격 규칙별 영어 답변과 한글 해석"></a>
 
 <img src="https://img.shields.io/badge/LLM-2e5e4e?style=flat" alt="LLM" align="middle"> &nbsp;<sub>2026.11</sub>
@@ -114,3 +150,11 @@ Flask 웹 서비스와 Docker 실행 환경으로 구현한 학습 프로젝트 
 </td>
 </tr>
 </table>
+
+---
+
+## 기초 실습
+
+| 실습 | 내용 |
+|---|---|
+| [Docker 기초](./docker_basics/) | Apache 웹 서버·MariaDB·Python 개발 환경 컨테이너 실행, 포트·폴더 연결 |

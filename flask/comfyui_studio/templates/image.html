@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt Studio</title>
+<style>
+  :root {
+    --bg: #0a0b10;
+    --card: rgba(255, 255, 255, .04);
+    --card-line: rgba(255, 255, 255, .09);
+    --text: #e8e9f0;
+    --muted: #9095a8;
+    --faint: #5c6175;
+    --violet: #8b5cf6;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --ok: #34d399;
+    --sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    --mono: "JetBrains Mono", "D2Coding", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(139, 92, 246, .22), transparent 60%),
+      radial-gradient(800px 500px at 110% 10%, rgba(34, 211, 238, .14), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font: 15px/1.6 var(--sans);
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 32px 16px 48px; }
+
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+  .logo { width: 40px; height: 40px; border-radius: 12px; background: conic-gradient(from 210deg, var(--violet), var(--cyan), var(--pink), var(--violet)); box-shadow: 0 0 24px rgba(139, 92, 246, .45); }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  .pill { margin-left: auto; padding: 6px 12px; border: 1px solid var(--card-line); border-radius: 999px; color: var(--muted); font: 12px var(--mono); white-space: nowrap; }
+  .pill b { color: var(--ok); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 20px; align-items: start; }
+  .card { border: 1px solid var(--card-line); border-radius: 18px; background: var(--card); backdrop-filter: blur(12px); padding: 22px; }
+
+  .label-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .label { font-weight: 600; font-size: 14px; }
+  .count { color: var(--faint); font: 12px var(--mono); }
+  textarea {
+    width: 100%; resize: vertical; padding: 14px 16px; border: 1px solid var(--card-line); border-radius: 12px;
+    background: rgba(0, 0, 0, .35); color: var(--text); font: 15px/1.6 var(--sans); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea:focus { border-color: var(--violet); box-shadow: 0 0 0 4px rgba(139, 92, 246, .18); }
+  #pos { min-height: 140px; }
+  #neg { min-height: 64px; font-size: 14px; color: #fca5a5; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 22px; }
+  .chip {
+    padding: 6px 12px; border: 1px solid var(--card-line); border-radius: 999px; background: rgba(255, 255, 255, .03);
+    color: var(--muted); font: 13px var(--sans); cursor: pointer; transition: all .15s;
+  }
+  .chip:hover { color: var(--text); border-color: rgba(139, 92, 246, .6); background: rgba(139, 92, 246, .12); }
+
+  details { margin-bottom: 22px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-bottom: 10px; list-style: none; }
+  summary::before { content: "▸ "; }
+  details[open] summary::before { content: "▾ "; }
+
+  .generate {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 15px 18px;
+    border: 0; border-radius: 14px; cursor: pointer; color: #fff; font: 700 16px var(--sans); letter-spacing: -.01em;
+    background: linear-gradient(110deg, var(--violet), #6366f1 45%, var(--cyan));
+    box-shadow: 0 10px 30px rgba(99, 102, 241, .35); transition: transform .12s, filter .12s;
+  }
+  .generate:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .generate:disabled { cursor: progress; filter: grayscale(.4) brightness(.85); transform: none; }
+  .hint { margin-top: 10px; text-align: center; color: var(--faint); font-size: 12px; }
+  kbd { padding: 1px 6px; border: 1px solid var(--card-line); border-bottom-width: 2px; border-radius: 5px; font: 11px var(--mono); color: var(--muted); }
+
+  .stage {
+    position: relative; display: grid; place-items: center; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
+    background: repeating-conic-gradient(rgba(255, 255, 255, .025) 0% 25%, transparent 0% 50%) 50% / 24px 24px, rgba(0, 0, 0, .35);
+    border: 1px solid var(--card-line);
+  }
+  .stage img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .empty { text-align: center; color: var(--faint); }
+  .empty .orb { width: 88px; height: 88px; margin: 0 auto 16px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(34, 211, 238, .5), rgba(139, 92, 246, .25) 55%, transparent 70%); filter: blur(1px); animation: float 4s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-8px) scale(1.04); } }
+
+  .loading { position: absolute; inset: 0; display: none; place-items: center; background: rgba(10, 11, 16, .72); backdrop-filter: blur(6px); }
+  .loading.on { display: grid; }
+  .spinner { width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, .12); border-top-color: var(--cyan); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { margin: 0; text-align: center; color: var(--muted); font-size: 14px; }
+  .loading .timer { color: var(--text); font: 600 20px var(--mono); }
+
+  .meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+  .meta div { padding: 10px 12px; border: 1px solid var(--card-line); border-radius: 12px; background: rgba(0, 0, 0, .25); min-width: 0; }
+  .meta small { display: block; color: var(--faint); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .meta span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 13px var(--mono); }
+  .actions { display: flex; gap: 10px; margin-top: 14px; }
+  .ghost {
+    flex: 1; padding: 11px 14px; border: 1px solid var(--card-line); border-radius: 12px; background: transparent;
+    color: var(--text); font: 600 14px var(--sans); text-align: center; text-decoration: none; cursor: pointer; transition: background .15s;
+  }
+  .ghost:hover { background: rgba(255, 255, 255, .06); }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .pill { display: none; }
+    .meta { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"></div>
+    <div>
+      <h1>Prompt Studio</h1>
+      <p>프롬프트를 입력하면 GPU 서버가 이미지를 그립니다</p>
+    </div>
+    <div class="pill"><b>●</b> <span id="server"></span></div>
+  </header>
+
+  <div class="grid">
+    <form class="card" method="post" id="gen">
+      <div class="label-row">
+        <span class="label">무엇을 그릴까요</span>
+        <span class="count" id="pos-count"></span>
+      </div>
+      <textarea id="pos" name="pos" spellcheck="false" placeholder="a beautiful landscape with galaxy in a bottle">{{ pos }}</textarea>
+
+      <div class="chips">
+        <button type="button" class="chip" data-add="cinematic lighting">시네마틱 조명</button>
+        <button type="button" class="chip" data-add="watercolor painting">수채화</button>
+        <button type="button" class="chip" data-add="oil painting">유화</button>
+        <button type="button" class="chip" data-add="anime style">애니메이션</button>
+        <button type="button" class="chip" data-add="pixel art">픽셀 아트</button>
+        <button type="button" class="chip" data-add="isometric 3d render">아이소메트릭 3D</button>
+        <button type="button" class="chip" data-add="neon cyberpunk city">네온 사이버펑크</button>
+        <button type="button" class="chip" data-add="soft pastel colors">파스텔 톤</button>
+      </div>
+
+      <details open>
+        <summary>제외할 요소</summary>
+        <textarea id="neg" name="neg" spellcheck="false">{{ neg }}</textarea>
+      </details>
+
+      <button type="submit" class="generate" id="run">✦ 이미지 생성</button>
+      <div class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 로도 생성할 수 있습니다</div>
+    </form>
+
+    <section class="card" id="result" data-img-url="{{ img_url }}">
+      <div class="stage">
+        {% if img_url %}
+          <img src="{{ img_url }}" alt="생성된 이미지">
+        {% else %}
+          <div class="empty">
+            <div class="orb"></div>
+            <div>아직 생성된 이미지가 없습니다</div>
+          </div>
+        {% endif %}
+        <div class="loading" id="loading">
+          <div>
+            <div class="spinner"></div>
+            <p class="timer" id="timer">0.0s</p>
+            <p>GPU 서버에서 생성 중</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <div><small>Web server</small><span id="m-server">-</span></div>
+        <div><small>Inference</small><span id="m-infer">-</span></div>
+        <div><small>File</small><span id="m-file">-</span></div>
+      </div>
+
+      {% if img_url %}
+      <div class="actions">
+        <a class="ghost" href="{{ img_url }}" target="_blank" rel="noopener">원본 열기</a>
+        <button type="button" class="ghost" id="copy">프롬프트 복사</button>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById("gen");
+  const pos = document.getElementById("pos");
+  const run = document.getElementById("run");
+  const imgUrl = document.getElementById("result").dataset.imgUrl;
+
+  document.getElementById("server").textContent = location.host;
+  document.getElementById("m-server").textContent = location.host;
+  if (imgUrl) {
+    try {
+      const u = new URL(imgUrl);
+      document.getElementById("m-infer").textContent = u.host;
+      document.getElementById("m-file").textContent = u.searchParams.get("filename") || "-";
+    } catch (e) {}
+  }
+
+  const countPos = () => { document.getElementById("pos-count").textContent = pos.value.length + "자"; };
+  pos.addEventListener("input", countPos);
+  countPos();
+
+  document.querySelectorAll(".chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const add = chip.dataset.add;
+      const cur = pos.value.trim();
+      if (!cur.includes(add)) pos.value = cur ? cur + ", " + add : add;
+      pos.focus();
+      countPos();
+    });
+  });
+
+  form.addEventListener("submit", () => {
+    run.disabled = true;
+    run.textContent = "생성 중...";
+    document.getElementById("loading").classList.add("on");
+    const t0 = performance.now();
+    setInterval(() => {
+      document.getElementById("timer").textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s";
+    }, 100);
+  });
+
+  form.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  const copy = document.getElementById("copy");
+  if (copy) {
+    copy.addEventListener("click", () => {
+      pos.select();
+      document.execCommand("copy");
+      copy.textContent = "복사됨";
+      setTimeout(() => { copy.textContent = "프롬프트 복사"; }, 1200);
+    });
+  }
+</script>
+</body>
+</html>

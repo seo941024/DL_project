@@ -13,3 +13,8 @@ Thumbs.db
 
 # 로그
 *.log
+
+# 배포 압축 파일 · 학습 중간 저장
+deploy/
+tensorflow/checkpoints/
+tensorflow/best.weights.h5

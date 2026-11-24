@@ -80,6 +80,9 @@
 - `static/images/`: 실행 화면 캡처
 - `requirements.txt`: 실행 패키지 목록
 - `Dockerfile`: Python 3.12 환경, 패키지 설치, 소스코드·모델 복사, 5000 포트 실행
+- `predict_server.py`: 분리 실행용 연산 서버, 모델 불러오기, `POST /predict` JSON 예측, 8890 포트
+- `webserver.py`: 분리 실행용 화면 서버, 모델 없이 입력을 `PREDICT_URL` 연산 서버로 전달, 5000 포트
+- `Dockerfile.model`·`Dockerfile.web`: 연산 서버·화면 서버 이미지
 
 ## 프로젝트 구조
 
@@ -89,6 +92,10 @@ iris_knn_flask/
 ├─ train_model.py
 ├─ requirements.txt
 ├─ Dockerfile
+├─ predict_server.py
+├─ webserver.py
+├─ Dockerfile.model
+├─ Dockerfile.web
 ├─ README.md
 ├─ model/
 │  └─ iris_model.pkl
@@ -135,6 +142,31 @@ docker run -d --name iris-knn-flask -p 5000:5000 iris-knn-flask
 ```text
 http://127.0.0.1:5000/
 ```
+
+### 화면 서버와 연산 서버 분리 실행
+
+화면은 다른 컴퓨터, 예측은 모델이 있는 컴퓨터에서 실행하는 구성
+
+```text
+브라우저 ──▶ 화면 서버: webserver.py, 5000 ── POST /predict JSON ──▶ 연산 서버: predict_server.py, 8890
+                                         ◀── {"prediction", "image"} ──
+```
+
+연산 서버 컴퓨터
+
+```bash
+docker build -f Dockerfile.model -t iris-model .
+docker run -d --name iris-model -p 8890:8890 iris-model
+```
+
+화면 서버 컴퓨터
+
+```bash
+docker build -f Dockerfile.web -t iris-web .
+docker run -d --name iris-web -p 5050:5000 -e PREDICT_URL=http://<연산 서버 IP>:8890/predict iris-web
+```
+
+브라우저 접속: `http://<화면 서버 IP>:5050/`
 
 ### 로컬 실행
 

@@ -1,0 +1,9 @@
+# 연산 서버 이미지: KNN 모델 예측 API, GPU PC 로컬에서 실행
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY predict_server.py .
+COPY model/ model/
+EXPOSE 8890
+CMD ["python", "predict_server.py"]
